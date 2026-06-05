@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediStock - Quản Lý Kho Thuốc Thông Minh</title>
+    <!-- Favicon / Logo trên thanh tab trình duyệt -->
+    <link rel="icon" type="image/png" href="favicon.png">
+    <!-- Google Fonts: Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="lib/lucide.min.js"></script>
+    <!-- Chart.js -->
+    <script src="lib/chart.umd.js"></script>
+    <!-- Html5-Qrcode for Barcode Scanner -->
+    <script src="lib/html5-qrcode.min.js"></script>
+    <!-- Style CSS -->
+    <link rel="stylesheet" href="style.css?v=2.2">
+</head>
+<body>
+    <!-- ================= LOGIN SCREEN OVERLAY ================= -->
+    <div id="login-overlay" class="login-overlay">
+        <div class="login-card">
+            <div class="login-header">
+                <div class="logo">
+                    <i data-lucide="pill" class="logo-icon"></i>
+                    <span class="logo-text">Medi<span>Stock</span></span>
+                </div>
+                <h2>Đăng nhập hệ thống</h2>
+                <p>Vui lòng nhập tài khoản để vào quản lý kho thuốc</p>
+            </div>
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="login-username">Tài khoản</label>
+                    <div class="input-icon-wrapper">
+                        <i data-lucide="user" class="input-icon"></i>
+                        <input type="text" id="login-username" required placeholder="Nhập tài khoản (vd: admin)">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Mật khẩu</label>
+                    <div class="input-icon-wrapper">
+                        <i data-lucide="lock" class="input-icon"></i>
+                        <input type="password" id="login-password" required placeholder="Nhập mật khẩu (vd: admin123)">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">
+                    Đăng nhập <i data-lucide="arrow-right"></i>
+                </button>
+            </form>
+            <div class="login-mock-accounts">
+                <h4>Tài khoản dùng thử:</h4>
+                <ul>
+                    <li><strong>Quản trị (Admin)</strong>: <code>admin</code> / <code>admin123</code> (Toàn quyền)</li>
+                    <li><strong>Dược sĩ (Pharmacist)</strong>: <code>duocsi</code> / <code>ds123</code> (Hạn chế xóa)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= MAIN APP CONTAINER ================= -->
+    <div class="app-container hidden" id="app-main-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i data-lucide="pill" class="logo-icon"></i>
+                    <span class="logo-text">Medi<span>Stock</span></span>
+                </div>
+            </div>
+            
+            <!-- User Section -->
+            <div class="sidebar-user-card">
+                <div class="user-avatar">
+                    <i data-lucide="user-check"></i>
+                </div>
+                <div class="user-info">
+                    <h4 id="user-full-name">Quản trị viên</h4>
+                    <span id="user-role-badge" class="role-badge">Admin</span>
+                </div>
+                <button class="btn-logout" onclick="logout()" title="Đăng xuất">
+                    <i data-lucide="log-out"></i>
+                </button>
+            </div>
+
+            <div class="sidebar-menu-wrapper">
+                <nav class="sidebar-menu">
+                    <a href="#" class="menu-item active" data-tab="dashboard">
+                        <i data-lucide="layout-dashboard"></i>
+                        <span>Tổng quan</span>
+                    </a>
+                    <a href="#" class="menu-item" data-tab="inventory">
+                        <i data-lucide="boxes"></i>
+                        <span>Kho thuốc & Tồn kho</span>
+                    </a>
+                    <a href="#" class="menu-item" data-tab="import-tab">
+                        <i data-lucide="arrow-down-to-line"></i>
+                        <span>Nhập kho</span>
+                    </a>
+                    <a href="#" class="menu-item" data-tab="export-tab">
+                        <i data-lucide="arrow-up-from-line"></i>
+                        <span>Xuất kho</span>
+                    </a>
+                    <a href="#" class="menu-item" data-tab="reports">
+                        <i data-lucide="bar-chart-3"></i>
+                        <span>Thống kê Quý</span>
+                    </a>
+                    <a href="#" class="menu-item" data-tab="settings" id="nav-settings-link">
+                        <i data-lucide="settings"></i>
+                        <span>Cấu hình & Backup</span>
+                    </a>
+                </nav>
+                <button class="btn-toggle-sidebar" onclick="toggleSidebarCollapse()" title="Thu gọn thanh bên" id="btn-sidebar-toggle">
+                    <i data-lucide="chevron-left" id="toggle-sidebar-icon"></i>
+                </button>
+            </div>
+            <div class="sidebar-footer">
+                <p>Hệ thống Quản lý Kho thuốc v2.0</p>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="main-header">
+                <div class="header-title">
+                    <h1 id="page-title">Tổng quan hệ thống</h1>
+                    <p class="current-date" id="header-date">Thứ Sáu, 05 Tháng 6, 2026</p>
+                </div>
+                <div class="header-actions">
+                    <div id="quick-alert-badge" class="alert-badge hidden" onclick="switchTab('inventory')">
+                        <i data-lucide="alert-triangle" class="shake-animation"></i>
+                        <span id="quick-alert-count">0</span> thuốc sắp hết!
+                    </div>
+                    <button class="btn btn-primary" onclick="switchTab('import-tab')">
+                        <i data-lucide="plus"></i> Nhập kho nhanh
+                    </button>
+                </div>
+            </header>
+
+            <div class="content-body">
+                <!-- ================= TAB: DASHBOARD ================= -->
+                <section id="dashboard" class="tab-content active">
+                    <!-- Stats Grid -->
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon-wrapper blue">
+                                <i data-lucide="layers"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3>Tổng số lượng thuốc</h3>
+                                <p class="stat-value" id="total-medicines-count">0</p>
+                                <span class="stat-desc">Số loại thuốc hiện có</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon-wrapper teal">
+                                <i data-lucide="activity"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3>Tổng số viên tồn</h3>
+                                <p class="stat-value" id="total-pills-count">0</p>
+                                <span class="stat-desc">Tổng số viên thuốc trong kho</span>
+                            </div>
+                        </div>
+                        <div class="stat-card danger-card">
+                            <div class="stat-icon-wrapper red">
+                                <i data-lucide="alert-circle" class="pulse-animation"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3>Cảnh báo sắp hết</h3>
+                                <p class="stat-value txt-danger" id="low-stock-count">0</p>
+                                <span class="stat-desc">Tồn kho dưới mốc cảnh báo</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon-wrapper purple">
+                                <i data-lucide="calendar"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3>Nhập trong quý này</h3>
+                                <p class="stat-value" id="quarter-import-count">0</p>
+                                <span class="stat-desc" id="current-quarter-label">Quý 2/2026</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dashboard Bottom Section -->
+                    <div class="dashboard-grid">
+                        <!-- Chart Card -->
+                        <div class="card chart-card">
+                            <div class="card-header">
+                                <h2>Thống kê nhập kho theo Quý (Viên)</h2>
+                                <div class="card-actions">
+                                    <select id="chart-year-filter" class="form-select select-sm">
+                                        <option value="2026">Năm 2026</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="card-body chart-container">
+                                <canvas id="quarterlyChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Top Quick Low Stock alerts list -->
+                        <div class="card list-card">
+                            <div class="card-header">
+                                <h2>Cảnh báo hết thuốc (<span class="alert-threshold-lbl">100</span> viên)</h2>
+                                <button class="btn btn-text btn-sm" onclick="switchTab('inventory')">Xem tất cả</button>
+                            </div>
+                            <div class="card-body">
+                                <div class="low-stock-list-container" id="dashboard-low-stock-list">
+                                    <div class="empty-state">
+                                        <i data-lucide="check-circle" class="txt-success"></i>
+                                        <p>Kho thuốc an toàn. Không có thuốc sắp hết.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ================= TAB: KHO THUỐC & TỒN KHO ================= -->
+                <section id="inventory" class="tab-content">
+                    <div class="card">
+                        <div class="card-header stack-header">
+                            <div class="search-filter-bar">
+                                <div class="search-input-wrapper">
+                                    <i data-lucide="search" class="search-icon"></i>
+                                    <input type="text" id="search-inventory" placeholder="Tìm kiếm tên thuốc, mã thuốc...">
+                                </div>
+                                <select id="filter-status" class="form-select">
+                                    <option value="all">Tất cả trạng thái</option>
+                                    <option value="low">Cảnh báo sắp hết (<= 100 viên)</option>
+                                    <option value="normal">Tồn kho an toàn (> 100 viên)</option>
+                                </select>
+                            </div>
+                            <div class="action-bar">
+                                <button class="btn btn-secondary" onclick="exportInventoryToCSV()">
+                                    <i data-lucide="download"></i> Xuất Excel/CSV
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body table-responsive">
+                            <table class="data-table" id="inventory-table">
+                                <thead>
+                                    <tr>
+                                        <th>Mã Thuốc</th>
+                                        <th>Tên Thuốc</th>
+                                        <th>Loại Thuốc / Nhóm</th>
+                                        <th class="txt-right">Tồn Kho (Viên)</th>
+                                        <th>Ngưỡng Cảnh Báo</th>
+                                        <th>Trạng Thái</th>
+                                        <th class="txt-center">Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="inventory-table-body">
+                                    <!-- Dynamic rows will go here -->
+                                </tbody>
+                            </table>
+                            <div id="inventory-empty-state" class="empty-state hidden">
+                                <i data-lucide="package-open"></i>
+                                <p>Không tìm thấy thuốc nào phù hợp với bộ lọc.</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ================= TAB: NHẬP KHO ================= -->
+                <section id="import-tab" class="tab-content">
+                    <div class="two-column-layout">
+                        <!-- Import Form -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h2>Phiếu Nhập Kho Thuốc</h2>
+                            </div>
+                            <div class="card-body">
+                                <form id="import-form">
+                                    <div class="form-group-row">
+                                        <div class="form-group">
+                                            <label for="import-med-name">Tên thuốc <span class="txt-danger">*</span></label>
+                                            <input type="text" id="import-med-name" required placeholder="Ví dụ: Paracetamol, Amoxicillin...">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="import-med-id">Mã thuốc / Barcode</label>
+                                            <div class="input-action-wrapper">
+                                                <input type="text" id="import-med-id" placeholder="Ví dụ: MED001">
+                                                <button type="button" class="btn btn-secondary btn-icon-only" onclick="openScanner('import-med-id')" title="Quét mã vạch">
+                                                    <i data-lucide="scan-barcode"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group-row">
+                                        <div class="form-group">
+                                            <label for="import-med-category">Nhóm/Loại thuốc</label>
+                                            <input type="text" id="import-med-category" placeholder="Ví dụ: Giảm đau, Kháng sinh, Kháng viêm...">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="import-pills-count">Số lượng viên nhập <span class="txt-danger">*</span></label>
+                                            <input type="number" id="import-pills-count" min="1" required placeholder="Nhập số viên, vd: 1000">
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group-row">
+                                        <div class="form-group">
+                                            <label for="import-date">Ngày nhập kho <span class="txt-danger">*</span></label>
+                                            <input type="date" id="import-date" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="import-expiry">Hạn sử dụng</label>
+                                            <input type="date" id="import-expiry">
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group-row">
+                                        <div class="form-group">
+                                            <label for="import-threshold">Ngưỡng cảnh báo tồn kho (viên)</label>
+                                            <input type="number" id="import-threshold" min="0" value="100" placeholder="Mặc định: 100 viên">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="import-provider">Nhà cung cấp / Nguồn gốc</label>
+                                            <input type="text" id="import-provider" placeholder="Công ty Dược phẩm XYZ">
+                                        </div>
+                                    </div>
+
+                                    <div class="form-actions">
+                                        <button type="reset" class="btn btn-secondary">Nhập lại</button>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i data-lucide="check"></i> Xác nhận nhập kho
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Import History -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h2>Lịch sử Nhập kho gần đây</h2>
+                            </div>
+                            <div class="card-body table-responsive">
+                                <table class="data-table table-sm" id="import-history-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Ngày nhập</th>
+                                            <th>Tên thuốc</th>
+                                            <th class="txt-right">Số lượng (Viên)</th>
+                                            <th>Quý</th>
+                                            <th class="txt-center">Thao tác</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="import-history-body">
+                                        <!-- Dynamic rows -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ================= TAB: XUẤT KHO ================= -->
+                <section id="export-tab" class="tab-content">
+                    <div class="two-column-layout">
+                        <!-- Export Form -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h2>Phiếu Xuất Kho / Sử Dụng Thuốc</h2>
+                            </div>
+                            <div class="card-body">
+                                <form id="export-form">
+                                    <div class="form-group">
+                                        <label for="export-med-select">Chọn thuốc xuất kho <span class="txt-danger">*</span></label>
+                                        <div class="input-action-wrapper">
+                                            <select id="export-med-select" required class="form-select">
+                                                <option value="">-- Chọn thuốc cần xuất --</option>
+                                            </select>
+                                            <button type="button" class="btn btn-secondary btn-icon-only" onclick="openScanner('export-med-select')" title="Quét mã vạch để chọn nhanh">
+                                                <i data-lucide="scan-barcode"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="info-alert hidden" id="export-stock-preview">
+                                        Tồn kho hiện tại: <strong id="preview-stock-pills">0</strong> viên.
+                                    </div>
+
+                                    <div class="form-group-row">
+                                        <div class="form-group">
+                                            <label for="export-pills-count">Số lượng viên xuất <span class="txt-danger">*</span></label>
+                                            <input type="number" id="export-pills-count" min="1" required placeholder="Nhập số viên xuất">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="export-date">Ngày xuất kho <span class="txt-danger">*</span></label>
+                                            <input type="date" id="export-date" required>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="export-note">Ghi chú / Mục đích xuất</label>
+                                        <input type="text" id="export-note" placeholder="Kê đơn bệnh nhân, cấp phát, hủy thuốc hết hạn...">
+                                    </div>
+
+                                    <div class="form-actions">
+                                        <button type="reset" class="btn btn-secondary">Hủy bỏ</button>
+                                        <button type="submit" class="btn btn-danger-action">
+                                            <i data-lucide="arrow-up-from-line"></i> Xác nhận xuất kho
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Export History -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h2>Lịch sử Xuất kho gần đây</h2>
+                            </div>
+                            <div class="card-body table-responsive">
+                                <table class="data-table table-sm" id="export-history-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Ngày xuất</th>
+                                            <th>Tên thuốc</th>
+                                            <th class="txt-right">Số lượng (Viên)</th>
+                                            <th>Ghi chú</th>
+                                            <th class="txt-center">Thao tác</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="export-history-body">
+                                        <!-- Dynamic rows -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ================= TAB: BÁO CÁO THỐNG KÊ QUÝ ================= -->
+                <section id="reports" class="tab-content">
+                    <!-- Report filter bar -->
+                    <div class="card filter-card">
+                        <div class="card-body search-filter-bar">
+                            <div class="form-group no-margin">
+                                <label for="report-year" class="lbl-inline">Năm báo cáo:</label>
+                                <select id="report-year" class="form-select select-inline">
+                                    <option value="2026">2026</option>
+                                    <option value="2025">2025</option>
+                                </select>
+                            </div>
+                            <div class="form-group no-margin">
+                                <label for="report-quarter" class="lbl-inline">Chọn Quý:</label>
+                                <select id="report-quarter" class="form-select select-inline">
+                                    <option value="all">Cả năm (4 Quý)</option>
+                                    <option value="1">Quý 1 (Tháng 1 - 3)</option>
+                                    <option value="2">Quý 2 (Tháng 4 - 6)</option>
+                                    <option value="3">Quý 3 (Tháng 7 - 9)</option>
+                                    <option value="4">Quý 4 (Tháng 10 - 12)</option>
+                                </select>
+                            </div>
+                            <div class="form-group no-margin">
+                                <label style="visibility: hidden;">&nbsp;</label>
+                                <button class="btn btn-primary" onclick="generateReportData()">
+                                    <i data-lucide="refresh-cw"></i> Tải dữ liệu báo cáo
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Report cards -->
+                    <div class="report-grid">
+                        <div class="card">
+                            <div class="card-header">
+                                <h2 id="report-title-imports">Bảng tổng hợp Nhập Kho</h2>
+                            </div>
+                            <div class="card-body table-responsive">
+                                <table class="data-table" id="report-import-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Mã thuốc</th>
+                                            <th>Tên thuốc</th>
+                                            <th>Quý</th>
+                                            <th class="txt-right">Số lần nhập</th>
+                                            <th class="txt-right">Tổng viên nhập</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="report-import-body">
+                                        <!-- Dynamic report rows -->
+                                    </tbody>
+                                </table>
+                                <div id="report-import-empty" class="empty-state hidden">
+                                    <i data-lucide="inbox"></i>
+                                    <p>Không có dữ liệu nhập kho trong khoảng thời gian này.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <h2 id="report-title-exports">Bảng tổng hợp Xuất Kho</h2>
+                            </div>
+                            <div class="card-body table-responsive">
+                                <table class="data-table" id="report-export-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Mã thuốc</th>
+                                            <th>Tên thuốc</th>
+                                            <th>Quý</th>
+                                            <th class="txt-right">Số lần xuất</th>
+                                            <th class="txt-right">Tổng viên xuất</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="report-export-body">
+                                        <!-- Dynamic report rows -->
+                                    </tbody>
+                                </table>
+                                <div id="report-export-empty" class="empty-state hidden">
+                                    <i data-lucide="inbox"></i>
+                                    <p>Không có dữ liệu xuất kho trong khoảng thời gian này.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ================= TAB: SETTINGS & BACKUP ================= -->
+                <section id="settings" class="tab-content">
+                    <div class="two-column-layout">
+                        <div class="card">
+                            <div class="card-header">
+                                <h2>Sao lưu & Khôi phục Dữ liệu</h2>
+                            </div>
+                            <div class="card-body">
+                                <p class="settings-desc">Dữ liệu được lưu trữ tự động trên thiết bị của bạn. Bạn nên xuất file dự phòng định kỳ để tránh mất dữ liệu khi xóa lịch sử trình duyệt.</p>
+                                
+                                <div class="settings-actions-group">
+                                    <button class="btn btn-secondary btn-full" onclick="backupData()">
+                                        <i data-lucide="upload-cloud"></i> Xuất File Dữ Liệu (.json)
+                                    </button>
+                                    
+                                    <div class="file-upload-wrapper">
+                                        <button class="btn btn-primary btn-full">
+                                            <i data-lucide="download-cloud"></i> Nhập File Dữ Liệu từ Máy
+                                        </button>
+                                        <input type="file" id="import-backup-file" accept=".json" onchange="restoreData(event)">
+                                    </div>
+                                </div>
+
+                                <hr class="settings-divider">
+
+                                <h3>Khởi tạo dữ liệu mẫu</h3>
+                                <p class="settings-desc">Bạn muốn thử nghiệm nhanh phần mềm? Bấm nút dưới để tạo tự động dữ liệu giả lập (có sẵn thuốc, lịch sử nhập xuất theo quý và một số thuốc sắp hết để test cảnh báo).</p>
+                                <button class="btn btn-secondary" id="btn-load-mock" onclick="loadMockData()">
+                                    <i data-lucide="database"></i> Tải Dữ Liệu Thử Nghiệm
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="card danger-card" id="settings-danger-card">
+                            <div class="card-header">
+                                <h2 class="txt-danger">Vùng nguy hiểm (Chỉ dành cho Admin)</h2>
+                            </div>
+                            <div class="card-body">
+                                <p class="settings-desc text-danger">Hành động này sẽ xóa toàn bộ dữ liệu trong kho thuốc của bạn bao gồm danh sách thuốc, lịch sử nhập kho và xuất kho. Hành động này KHÔNG THỂ hoàn tác.</p>
+                                <button class="btn btn-danger-action" onclick="resetAllData()">
+                                    <i data-lucide="trash-2"></i> Xóa toàn bộ dữ liệu hệ thống
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Edit Threshold Modal -->
+    <div id="threshold-modal" class="modal-overlay hidden">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Cập nhật Ngưỡng Cảnh Báo</h2>
+                <button class="modal-close" onclick="closeThresholdModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="edit-threshold-form">
+                    <input type="hidden" id="edit-threshold-med-id">
+                    <div class="form-group">
+                        <label for="edit-threshold-med-name">Tên thuốc</label>
+                        <input type="text" id="edit-threshold-med-name" readonly class="form-input-readonly">
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-threshold-value">Ngưỡng cảnh báo mới (viên)</label>
+                        <input type="number" id="edit-threshold-value" min="0" required>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeThresholdModal()">Hủy</button>
+                        <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= CUSTOM CONFIRM MODAL ================= -->
+    <div id="confirm-modal" class="modal-overlay hidden">
+        <div class="modal confirm-modal-box">
+            <div class="modal-header">
+                <h2>Xác nhận thao tác</h2>
+                <button class="modal-close" onclick="closeConfirmModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="confirm-message-wrapper">
+                    <i data-lucide="help-circle" class="confirm-icon"></i>
+                    <p id="confirm-modal-message">Bạn có chắc chắn muốn thực hiện hành động này?</p>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" id="confirm-modal-cancel">Hủy bỏ</button>
+                    <button type="button" class="btn btn-danger-action" id="confirm-modal-ok">Xác nhận</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= BARCODE SCANNER MODAL ================= -->
+    <div id="scanner-modal" class="modal-overlay hidden">
+        <div class="modal scanner-modal-box">
+            <div class="modal-header">
+                <h2>Quét mã vạch qua Camera</h2>
+                <button class="modal-close" onclick="closeScanner()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="scanner-desc">Vui lòng đưa mã vạch của hộp thuốc vào chính giữa khung camera quét.</p>
+                
+                <div class="scanner-viewport-wrapper">
+                    <!-- Scanner Viewport for real Camera -->
+                    <div id="scanner-reader"></div>
+                    
+                    <!-- Simulated scan overlay -->
+                    <div id="scanner-simulated-overlay" class="scanner-simulated-overlay hidden">
+                        <div class="simulated-camera-feed">
+                            <i data-lucide="aperture" class="simulated-aperture-icon"></i>
+                            <span class="simulated-feed-txt">Đang giả lập kết nối camera...</span>
+                        </div>
+                        <div class="laser-scanner-line"></div>
+                        <div class="scanner-focus-corners"></div>
+                    </div>
+                </div>
+
+                <div class="scanner-actions">
+                    <button type="button" class="btn btn-secondary btn-full" id="btn-toggle-scan-mode" onclick="toggleScanMode()">
+                        <i data-lucide="refresh-cw"></i> Chuyển sang Giả lập Quét
+                    </button>
+                    <button type="button" class="btn btn-primary btn-full hidden" id="btn-trigger-simulation" onclick="triggerSimulatedScan()">
+                        <i data-lucide="bolt"></i> Bấm để Giả lập Đọc Mã
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JS Logic -->
+    <script src="app.js?v=2.1"></script>
+</body>
+</html>
