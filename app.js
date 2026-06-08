@@ -31,14 +31,26 @@ const mockUsers = {
     "duocsi": { password: "ds123", role: "pharmacist", fullName: "Dược sĩ lâm sàng" }
 };
 
+// Helper to get today's date in YYYY-MM-DD format (local time)
+function getTodayDateString() {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+}
+
 // Initialize App
 document.addEventListener("DOMContentLoaded", () => {
     try {
-        const todayStr = "2026-06-05";
+        const todayStr = getTodayDateString();
         
         // Set headers date
         const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-        const dateFormatted = new Date(todayStr).toLocaleDateString('vi-VN', options);
+        let dateFormatted = new Date().toLocaleDateString('vi-VN', options);
+        if (dateFormatted) {
+            dateFormatted = dateFormatted.charAt(0).toUpperCase() + dateFormatted.slice(1);
+        }
         document.getElementById("header-date").textContent = dateFormatted;
         
         // Set default values for date inputs
@@ -426,7 +438,7 @@ function setupFormListeners() {
 
             saveState();
             importForm.reset();
-            document.getElementById("import-date").value = "2026-06-05";
+            document.getElementById("import-date").value = getTodayDateString();
             
             showToast(`Đã nhập kho thành công ${pillsCount} viên thuốc ${name}!`, "success");
             refreshUI();
@@ -489,7 +501,7 @@ function setupFormListeners() {
             saveState();
             exportForm.reset();
             
-            document.getElementById("export-date").value = "2026-06-05";
+            document.getElementById("export-date").value = getTodayDateString();
             document.getElementById("export-stock-preview").classList.add("hidden");
             
             showToast(`Đã xuất kho thành công ${pillsCount} viên thuốc ${med.name}!`, "success");
@@ -1148,7 +1160,7 @@ function exportInventoryToCSV() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.setAttribute("href", url);
-    link.setAttribute("download", `MediStock_TonKho_2026-06-05.csv`);
+    link.setAttribute("download", `MediStock_TonKho_${getTodayDateString()}.csv`);
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
@@ -1164,7 +1176,7 @@ function backupData() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.setAttribute("href", url);
-    link.setAttribute("download", `MediStock_Backup_2026-06-05.json`);
+    link.setAttribute("download", `MediStock_Backup_${getTodayDateString()}.json`);
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
