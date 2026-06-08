@@ -97,6 +97,9 @@ function checkAuth() {
 }
 
 function showLoginLayout() {
+    const errorAlert = document.getElementById("login-error-alert");
+    if (errorAlert) errorAlert.classList.add("hidden");
+    
     document.getElementById("login-overlay").classList.remove("hidden");
     document.getElementById("app-main-layout").classList.add("hidden");
     if (window.lucide) lucide.createIcons();
@@ -152,6 +155,11 @@ function setupLoginListener() {
     
     loginForm.addEventListener("submit", (e) => {
         e.preventDefault();
+        
+        // Hide previous login error alert
+        const errorAlert = document.getElementById("login-error-alert");
+        if (errorAlert) errorAlert.classList.add("hidden");
+        
         try {
             const username = document.getElementById("login-username").value.trim().toLowerCase();
             const password = document.getElementById("login-password").value;
@@ -174,13 +182,25 @@ function setupLoginListener() {
                 showMainLayout();
                 showToast(`Chào mừng ${currentUser.fullName} đã đăng nhập thành công!`, "success");
             } else {
-                showToast("Tài khoản hoặc mật khẩu không đúng!", "danger");
+                showLoginError("Tài khoản hoặc mật khẩu không đúng!");
             }
         } catch (err) {
             console.error("Lỗi đăng nhập:", err);
-            showToast("Lỗi trong quá trình đăng nhập: " + err.message, "danger");
+            showLoginError("Lỗi trong quá trình đăng nhập: " + err.message);
         }
     });
+}
+
+function showLoginError(message) {
+    const errorAlert = document.getElementById("login-error-alert");
+    const errorText = document.getElementById("login-error-text");
+    if (errorAlert && errorText) {
+        errorText.textContent = message;
+        errorAlert.classList.remove("hidden");
+        if (window.lucide) lucide.createIcons();
+    } else {
+        showToast(message, "danger");
+    }
 }
 
 function logout() {
@@ -352,6 +372,22 @@ function setupFormListeners() {
             const threshold = parseInt(document.getElementById("import-threshold").value) || 100;
             const provider = document.getElementById("import-provider").value.trim() || "Nhà cung cấp tự do";
 
+            // Validate year constraints (min 1900, max 9999 / 4 digits)
+            if (importDate) {
+                const impYear = getYearFromDate(importDate);
+                if (impYear < 1900 || impYear > 9999) {
+                    showToast("Lỗi! Năm nhập kho phải lớn hơn hoặc bằng 1900 và tối đa 4 chữ số.", "danger");
+                    return;
+                }
+            }
+            if (expiry) {
+                const expYear = getYearFromDate(expiry);
+                if (expYear < 1900 || expYear > 9999) {
+                    showToast("Lỗi! Năm hạn sử dụng phải lớn hơn hoặc bằng 1900 và tối đa 4 chữ số.", "danger");
+                    return;
+                }
+            }
+
             if (!medId) {
                 medId = "MED" + String(Date.now()).slice(-4);
             }
@@ -408,6 +444,15 @@ function setupFormListeners() {
             const pillsCount = parseInt(document.getElementById("export-pills-count").value);
             const exportDate = document.getElementById("export-date").value;
             const note = document.getElementById("export-note").value.trim() || "Xuất sử dụng";
+
+            // Validate year constraints (min 1900, max 9999 / 4 digits)
+            if (exportDate) {
+                const expYear = getYearFromDate(exportDate);
+                if (expYear < 1900 || expYear > 9999) {
+                    showToast("Lỗi! Năm xuất kho phải lớn hơn hoặc bằng 1900 và tối đa 4 chữ số.", "danger");
+                    return;
+                }
+            }
 
             if (!medId) {
                 showToast("Vui lòng chọn loại thuốc cần xuất!", "warning");
@@ -1237,17 +1282,38 @@ function showToast(message, type = "info") {
     
     toast.innerHTML = `
         <i data-lucide="${iconName}"></i>
-        <div>${message}</div>
+        <div class="toast-message">${message}</div>
     `;
+    
+    // Create close button for the toast
+    const closeBtn = document.createElement("button");
+    closeBtn.className = "toast-close";
+    closeBtn.innerHTML = "&times;";
+    closeBtn.title = "Đóng thông báo";
+    
+    // Timers to cancel auto-dismiss if manually clicked
+    let dismissTimeout = null;
+    let removeTimeout = null;
+    
+    const dismissToast = () => {
+        toast.classList.remove("show");
+        if (dismissTimeout) clearTimeout(dismissTimeout);
+        if (removeTimeout) clearTimeout(removeTimeout);
+        setTimeout(() => { toast.remove(); }, 300);
+    };
+    
+    closeBtn.addEventListener("click", dismissToast);
+    toast.appendChild(closeBtn);
     
     container.appendChild(toast);
     if (window.lucide) lucide.createIcons();
     
     setTimeout(() => { toast.classList.add("show"); }, 10);
     
-    setTimeout(() => {
+    // Auto dismiss after 4 seconds
+    dismissTimeout = setTimeout(() => {
         toast.classList.remove("show");
-        setTimeout(() => { toast.remove(); }, 300);
+        removeTimeout = setTimeout(() => { toast.remove(); }, 300);
     }, 4000);
 }
 

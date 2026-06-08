@@ -1,15 +1,17 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MediStock - Quản Lý Kho Thuốc Thông Minh</title>
+    <title>MediStock</title>
     <!-- Favicon / Logo trên thanh tab trình duyệt -->
-    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="icon" type="image/png" href="img/favicon.png?v=4">
     <!-- Google Fonts: Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <!-- Lucide Icons -->
     <script src="lib/lucide.min.js"></script>
     <!-- Chart.js -->
@@ -19,6 +21,7 @@
     <!-- Style CSS -->
     <link rel="stylesheet" href="style.css?v=2.2">
 </head>
+
 <body>
     <!-- ================= LOGIN SCREEN OVERLAY ================= -->
     <div id="login-overlay" class="login-overlay">
@@ -30,6 +33,10 @@
                 </div>
                 <h2>Đăng nhập hệ thống</h2>
                 <p>Vui lòng nhập tài khoản để vào quản lý kho thuốc</p>
+            </div>
+            <div id="login-error-alert" class="login-error-alert hidden">
+                <i data-lucide="alert-circle"></i>
+                <span id="login-error-text">Tài khoản hoặc mật khẩu không đúng!</span>
             </div>
             <form id="login-form">
                 <div class="form-group">
@@ -54,7 +61,8 @@
                 <h4>Tài khoản dùng thử:</h4>
                 <ul>
                     <li><strong>Quản trị (Admin)</strong>: <code>admin</code> / <code>admin123</code> (Toàn quyền)</li>
-                    <li><strong>Dược sĩ (Pharmacist)</strong>: <code>duocsi</code> / <code>ds123</code> (Hạn chế xóa)</li>
+                    <li><strong>Dược sĩ (Pharmacist)</strong>: <code>duocsi</code> / <code>ds123</code> (Hạn chế xóa)
+                    </li>
                 </ul>
             </div>
         </div>
@@ -70,7 +78,7 @@
                     <span class="logo-text">Medi<span>Stock</span></span>
                 </div>
             </div>
-            
+
             <!-- User Section -->
             <div class="sidebar-user-card">
                 <div class="user-avatar">
@@ -112,7 +120,8 @@
                         <span>Cấu hình & Backup</span>
                     </a>
                 </nav>
-                <button class="btn-toggle-sidebar" onclick="toggleSidebarCollapse()" title="Thu gọn thanh bên" id="btn-sidebar-toggle">
+                <button class="btn-toggle-sidebar" onclick="toggleSidebarCollapse()" title="Thu gọn thanh bên"
+                    id="btn-sidebar-toggle">
                     <i data-lucide="chevron-left" id="toggle-sidebar-icon"></i>
                 </button>
             </div>
@@ -229,7 +238,8 @@
                             <div class="search-filter-bar">
                                 <div class="search-input-wrapper">
                                     <i data-lucide="search" class="search-icon"></i>
-                                    <input type="text" id="search-inventory" placeholder="Tìm kiếm tên thuốc, mã thuốc...">
+                                    <input type="text" id="search-inventory"
+                                        placeholder="Tìm kiếm tên thuốc, mã thuốc...">
                                 </div>
                                 <select id="filter-status" class="form-select">
                                     <option value="all">Tất cả trạng thái</option>
@@ -280,46 +290,54 @@
                                 <form id="import-form">
                                     <div class="form-group-row">
                                         <div class="form-group">
-                                            <label for="import-med-name">Tên thuốc <span class="txt-danger">*</span></label>
-                                            <input type="text" id="import-med-name" required placeholder="Ví dụ: Paracetamol, Amoxicillin...">
+                                            <label for="import-med-name">Tên thuốc <span
+                                                    class="txt-danger">*</span></label>
+                                            <input type="text" id="import-med-name" required
+                                                placeholder="Ví dụ: Paracetamol, Amoxicillin...">
                                         </div>
                                         <div class="form-group">
                                             <label for="import-med-id">Mã thuốc / Barcode</label>
                                             <div class="input-action-wrapper">
                                                 <input type="text" id="import-med-id" placeholder="Ví dụ: MED001">
-                                                <button type="button" class="btn btn-secondary btn-icon-only" onclick="openScanner('import-med-id')" title="Quét mã vạch">
+                                                <button type="button" class="btn btn-secondary btn-icon-only"
+                                                    onclick="openScanner('import-med-id')" title="Quét mã vạch">
                                                     <i data-lucide="scan-barcode"></i>
                                                 </button>
                                             </div>
                                         </div>
                                     </div>
-                                    
+
                                     <div class="form-group-row">
                                         <div class="form-group">
                                             <label for="import-med-category">Nhóm/Loại thuốc</label>
-                                            <input type="text" id="import-med-category" placeholder="Ví dụ: Giảm đau, Kháng sinh, Kháng viêm...">
+                                            <input type="text" id="import-med-category"
+                                                placeholder="Ví dụ: Giảm đau, Kháng sinh, Kháng viêm...">
                                         </div>
                                         <div class="form-group">
-                                            <label for="import-pills-count">Số lượng viên nhập <span class="txt-danger">*</span></label>
-                                            <input type="number" id="import-pills-count" min="1" required placeholder="Nhập số viên, vd: 1000">
+                                            <label for="import-pills-count">Số lượng viên nhập <span
+                                                    class="txt-danger">*</span></label>
+                                            <input type="number" id="import-pills-count" min="1" required
+                                                placeholder="Nhập số viên, vd: 1000">
                                         </div>
                                     </div>
 
                                     <div class="form-group-row">
                                         <div class="form-group">
-                                            <label for="import-date">Ngày nhập kho <span class="txt-danger">*</span></label>
-                                            <input type="date" id="import-date" required>
+                                            <label for="import-date">Ngày nhập kho <span
+                                                    class="txt-danger">*</span></label>
+                                            <input type="date" id="import-date" min="1900-01-01" max="9999-12-31" required>
                                         </div>
                                         <div class="form-group">
                                             <label for="import-expiry">Hạn sử dụng</label>
-                                            <input type="date" id="import-expiry">
+                                            <input type="date" id="import-expiry" min="1900-01-01" max="9999-12-31">
                                         </div>
                                     </div>
 
                                     <div class="form-group-row">
                                         <div class="form-group">
                                             <label for="import-threshold">Ngưỡng cảnh báo tồn kho (viên)</label>
-                                            <input type="number" id="import-threshold" min="0" value="100" placeholder="Mặc định: 100 viên">
+                                            <input type="number" id="import-threshold" min="0" value="100"
+                                                placeholder="Mặc định: 100 viên">
                                         </div>
                                         <div class="form-group">
                                             <label for="import-provider">Nhà cung cấp / Nguồn gốc</label>
@@ -373,35 +391,42 @@
                             <div class="card-body">
                                 <form id="export-form">
                                     <div class="form-group">
-                                        <label for="export-med-select">Chọn thuốc xuất kho <span class="txt-danger">*</span></label>
+                                        <label for="export-med-select">Chọn thuốc xuất kho <span
+                                                class="txt-danger">*</span></label>
                                         <div class="input-action-wrapper">
                                             <select id="export-med-select" required class="form-select">
                                                 <option value="">-- Chọn thuốc cần xuất --</option>
                                             </select>
-                                            <button type="button" class="btn btn-secondary btn-icon-only" onclick="openScanner('export-med-select')" title="Quét mã vạch để chọn nhanh">
+                                            <button type="button" class="btn btn-secondary btn-icon-only"
+                                                onclick="openScanner('export-med-select')"
+                                                title="Quét mã vạch để chọn nhanh">
                                                 <i data-lucide="scan-barcode"></i>
                                             </button>
                                         </div>
                                     </div>
-                                    
+
                                     <div class="info-alert hidden" id="export-stock-preview">
                                         Tồn kho hiện tại: <strong id="preview-stock-pills">0</strong> viên.
                                     </div>
 
                                     <div class="form-group-row">
                                         <div class="form-group">
-                                            <label for="export-pills-count">Số lượng viên xuất <span class="txt-danger">*</span></label>
-                                            <input type="number" id="export-pills-count" min="1" required placeholder="Nhập số viên xuất">
+                                            <label for="export-pills-count">Số lượng viên xuất <span
+                                                    class="txt-danger">*</span></label>
+                                            <input type="number" id="export-pills-count" min="1" required
+                                                placeholder="Nhập số viên xuất">
                                         </div>
                                         <div class="form-group">
-                                            <label for="export-date">Ngày xuất kho <span class="txt-danger">*</span></label>
-                                            <input type="date" id="export-date" required>
+                                            <label for="export-date">Ngày xuất kho <span
+                                                    class="txt-danger">*</span></label>
+                                            <input type="date" id="export-date" min="1900-01-01" max="9999-12-31" required>
                                         </div>
                                     </div>
 
                                     <div class="form-group">
                                         <label for="export-note">Ghi chú / Mục đích xuất</label>
-                                        <input type="text" id="export-note" placeholder="Kê đơn bệnh nhân, cấp phát, hủy thuốc hết hạn...">
+                                        <input type="text" id="export-note"
+                                            placeholder="Kê đơn bệnh nhân, cấp phát, hủy thuốc hết hạn...">
                                     </div>
 
                                     <div class="form-actions">
@@ -534,25 +559,29 @@
                                 <h2>Sao lưu & Khôi phục Dữ liệu</h2>
                             </div>
                             <div class="card-body">
-                                <p class="settings-desc">Dữ liệu được lưu trữ tự động trên thiết bị của bạn. Bạn nên xuất file dự phòng định kỳ để tránh mất dữ liệu khi xóa lịch sử trình duyệt.</p>
-                                
+                                <p class="settings-desc">Dữ liệu được lưu trữ tự động trên thiết bị của bạn. Bạn nên
+                                    xuất file dự phòng định kỳ để tránh mất dữ liệu khi xóa lịch sử trình duyệt.</p>
+
                                 <div class="settings-actions-group">
                                     <button class="btn btn-secondary btn-full" onclick="backupData()">
                                         <i data-lucide="upload-cloud"></i> Xuất File Dữ Liệu (.json)
                                     </button>
-                                    
+
                                     <div class="file-upload-wrapper">
                                         <button class="btn btn-primary btn-full">
                                             <i data-lucide="download-cloud"></i> Nhập File Dữ Liệu từ Máy
                                         </button>
-                                        <input type="file" id="import-backup-file" accept=".json" onchange="restoreData(event)">
+                                        <input type="file" id="import-backup-file" accept=".json"
+                                            onchange="restoreData(event)">
                                     </div>
                                 </div>
 
                                 <hr class="settings-divider">
 
                                 <h3>Khởi tạo dữ liệu mẫu</h3>
-                                <p class="settings-desc">Bạn muốn thử nghiệm nhanh phần mềm? Bấm nút dưới để tạo tự động dữ liệu giả lập (có sẵn thuốc, lịch sử nhập xuất theo quý và một số thuốc sắp hết để test cảnh báo).</p>
+                                <p class="settings-desc">Bạn muốn thử nghiệm nhanh phần mềm? Bấm nút dưới để tạo tự động
+                                    dữ liệu giả lập (có sẵn thuốc, lịch sử nhập xuất theo quý và một số thuốc sắp hết để
+                                    test cảnh báo).</p>
                                 <button class="btn btn-secondary" id="btn-load-mock" onclick="loadMockData()">
                                     <i data-lucide="database"></i> Tải Dữ Liệu Thử Nghiệm
                                 </button>
@@ -564,7 +593,9 @@
                                 <h2 class="txt-danger">Vùng nguy hiểm (Chỉ dành cho Admin)</h2>
                             </div>
                             <div class="card-body">
-                                <p class="settings-desc text-danger">Hành động này sẽ xóa toàn bộ dữ liệu trong kho thuốc của bạn bao gồm danh sách thuốc, lịch sử nhập kho và xuất kho. Hành động này KHÔNG THỂ hoàn tác.</p>
+                                <p class="settings-desc text-danger">Hành động này sẽ xóa toàn bộ dữ liệu trong kho
+                                    thuốc của bạn bao gồm danh sách thuốc, lịch sử nhập kho và xuất kho. Hành động này
+                                    KHÔNG THỂ hoàn tác.</p>
                                 <button class="btn btn-danger-action" onclick="resetAllData()">
                                     <i data-lucide="trash-2"></i> Xóa toàn bộ dữ liệu hệ thống
                                 </button>
@@ -635,11 +666,11 @@
             </div>
             <div class="modal-body">
                 <p class="scanner-desc">Vui lòng đưa mã vạch của hộp thuốc vào chính giữa khung camera quét.</p>
-                
+
                 <div class="scanner-viewport-wrapper">
                     <!-- Scanner Viewport for real Camera -->
                     <div id="scanner-reader"></div>
-                    
+
                     <!-- Simulated scan overlay -->
                     <div id="scanner-simulated-overlay" class="scanner-simulated-overlay hidden">
                         <div class="simulated-camera-feed">
@@ -652,10 +683,12 @@
                 </div>
 
                 <div class="scanner-actions">
-                    <button type="button" class="btn btn-secondary btn-full" id="btn-toggle-scan-mode" onclick="toggleScanMode()">
+                    <button type="button" class="btn btn-secondary btn-full" id="btn-toggle-scan-mode"
+                        onclick="toggleScanMode()">
                         <i data-lucide="refresh-cw"></i> Chuyển sang Giả lập Quét
                     </button>
-                    <button type="button" class="btn btn-primary btn-full hidden" id="btn-trigger-simulation" onclick="triggerSimulatedScan()">
+                    <button type="button" class="btn btn-primary btn-full hidden" id="btn-trigger-simulation"
+                        onclick="triggerSimulatedScan()">
                         <i data-lucide="bolt"></i> Bấm để Giả lập Đọc Mã
                     </button>
                 </div>
@@ -666,4 +699,5 @@
     <!-- JS Logic -->
     <script src="app.js?v=2.1"></script>
 </body>
+
 </html>
